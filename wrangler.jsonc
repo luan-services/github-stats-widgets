@@ -8,7 +8,10 @@
 			"binding": "GITHUB_CACHE",
 			"id": "3b6332dae92e49539486747fa81f7156"
 		}
-	]
+	],
+	"vars": {
+	"NODE_ENV": "production"
+	}
 	// "compatibility_flags": [
 	//   "nodejs_compat"
 	// ],

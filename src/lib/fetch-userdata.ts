@@ -1,4 +1,6 @@
 import type { KVNamespace } from '@cloudflare/workers-types'
+import { HTTPException } from 'hono/http-exception'
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 
 export type Bindings = {
     GITHUB_TOKEN: string
@@ -65,12 +67,19 @@ export const fetchGithubUserData = async (username: string, env: Bindings) => {
         body: JSON.stringify({ query, variables: { username } })
     })
 
-    /* must implement an error handler to send json error responses */
     if (!response.ok) {
-        throw new Error('Github API Error')
+        const error = await response.text();
+        throw new HTTPException(response.status as ContentfulStatusCode, {
+            message: error || 'GitHub HTTP Error'
+        });
     }
 
     const { data } = await response.json() as any
+
+    if (data.errors) {
+        const message = data.errors[0]?.message || 'GitHub GraphQL Error';
+        throw new HTTPException(500, { message });
+    }
 
     /* saves on cloudflare KV for 14400s (4 hours) */
     await env.GITHUB_CACHE.put(
